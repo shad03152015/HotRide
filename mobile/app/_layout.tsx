@@ -23,7 +23,7 @@ export default function RootLayout() {
     if (!isReady) return;
 
     // Public routes that don't require authentication
-    const publicRoutes = ['login', 'signup', 'verify-email', 'verify-phone', 'profile-setup-full'];
+    const publicRoutes = ['login', 'signup', 'verify-email', 'verify-phone', 'profile-setup-full', 'enable-location'];
     const currentRoute = segments[0];
     const isPublicRoute = publicRoutes.includes(currentRoute);
 
@@ -65,6 +65,7 @@ export default function RootLayout() {
         <Stack.Screen name="verify-phone" />
         <Stack.Screen name="profile-setup" />
         <Stack.Screen name="profile-setup-full" />
+        <Stack.Screen name="enable-location" />
         <Stack.Screen name="home" />
         <Stack.Screen name="edit-profile" />
       </Stack>
