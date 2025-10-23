@@ -213,9 +213,9 @@ export default function BookingScreen() {
 
       showSuccess('Ride booked successfully! Finding nearby drivers...');
 
-      // Navigate to ride tracking screen with booking ID
+      // Navigate to finding driver screen with booking ID
       setTimeout(() => {
-        router.push(`/ride-tracking?bookingId=${booking.id}`);
+        router.push(`/finding-driver?bookingId=${booking.id}`);
       }, 1500);
     } catch (error: any) {
       showError(error.response?.data?.detail || 'Failed to book ride');
