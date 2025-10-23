@@ -31,6 +31,7 @@ from app.services.sms_service import send_sms_verification, verify_phone_code
 from app.utils.jwt import create_access_token, verify_token
 from app.utils.password import hash_password
 from app.database import get_database
+from app.middleware.auth import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -451,6 +452,55 @@ async def profile_setup(request: ProfileSetupRequest, token: str = Depends(lambd
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Something went wrong. Please try again.",
+        )
+
+
+@router.put("/update-profile", response_model=UserResponse)
+async def update_profile(
+    request: ProfileSetupRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update authenticated user's profile
+    
+    Only allows updating full_name and profile_picture_url
+    Email and phone cannot be changed through this endpoint
+    
+    Requires: Authorization header with Bearer token
+    """
+    try:
+        db = get_database()
+        
+        # Prepare update data - only allow full_name and profile_picture_url
+        update_data = {"updated_at": datetime.utcnow()}
+        
+        if request.full_name is not None:
+            update_data["full_name"] = request.full_name
+        
+        if request.profile_picture_url is not None:
+            update_data["profile_picture_url"] = request.profile_picture_url
+        
+        # Update user in database
+        user = await db.users.find_one_and_update(
+            {"_id": current_user["_id"]},
+            {"$set": update_data},
+            return_document=True
+        )
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+        
+        return user_to_response(user)
     
     except HTTPException:
         raise
