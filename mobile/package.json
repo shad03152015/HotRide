@@ -20,6 +20,8 @@
     "expo-secure-store": "~12.8.0",
     "expo-crypto": "~12.8.0",
     "expo-image-picker": "~14.7.1",
+    "expo-location": "~16.5.5",
+    "react-native-maps": "1.10.0",
     "axios": "^1.6.0",
     "zustand": "^4.5.0",
     "react-native-toast-message": "^2.2.0",
