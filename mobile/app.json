@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "HotRide",
+    "slug": "hotride",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "hotride",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF5733"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hotride.app",
+      "usesAppleSignIn": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FF5733"
+      },
+      "package": "com.hotride.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "@react-native-google-signin/google-signin",
+      "expo-apple-authentication"
+    ]
+  }
+}
