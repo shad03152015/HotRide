@@ -165,3 +165,16 @@ export async function profileSetup(data: {
   const response = await api.post<User>('/auth/profile-setup', data);
   return response.data;
 }
+
+/**
+ * Update authenticated user's profile
+ * Requires Authorization header with Bearer token
+ * Only updates full_name and profile_picture_url
+ */
+export async function updateProfile(data: {
+  full_name?: string;
+  profile_picture_url?: string;
+}): Promise<User> {
+  const response = await api.put<User>('/auth/update-profile', data);
+  return response.data;
+}
