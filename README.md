@@ -53,6 +53,10 @@ HotRide/
 - ✅ Phone verification screen with 6-digit code input
 - ✅ Profile setup screen with photo upload
 - ✅ Edit profile screen with photo upload
+- ✅ Enable location screen with map view
+- ✅ Location permission handling (expo-location)
+- ✅ Map integration with driver markers (react-native-maps)
+- ✅ Location-based booking button (disabled without location)
 - ✅ Image picker integration (expo-image-picker)
 - ✅ Complete registration flow
 - ✅ Terms & Conditions acceptance
