@@ -142,6 +142,16 @@ npm start
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID
 - `APPLE_CLIENT_ID` - Apple bundle identifier
 - `CORS_ORIGINS` - Allowed CORS origins
+- `SMTP_HOST` - SMTP server host (e.g., smtp.gmail.com)
+- `SMTP_PORT` - SMTP server port (e.g., 587)
+- `SMTP_USERNAME` - SMTP username/email
+- `SMTP_PASSWORD` - SMTP password/app password
+- `SMTP_FROM_EMAIL` - Sender email address
+- `SMTP_FROM_NAME` - Sender display name
+- `TWILIO_ACCOUNT_SID` - Twilio account SID
+- `TWILIO_AUTH_TOKEN` - Twilio auth token
+- `TWILIO_PHONE_NUMBER` - Twilio phone number
+- `FRONTEND_URL` - Frontend URL for email links
 
 **Frontend (.env):**
 - `EXPO_PUBLIC_API_URL` - Backend API URL
@@ -162,6 +172,15 @@ For mobile testing on same network:
 - `POST /api/auth/login` - Email/Phone + Password login
 - `POST /api/auth/google` - Google OAuth authentication
 - `POST /api/auth/apple` - Apple Sign In authentication
+
+### Registration & Verification (Stage 2)
+
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/verify-email` - Verify email with code
+- `POST /api/auth/resend-email-code` - Resend email verification code
+- `POST /api/auth/send-phone-code` - Send phone verification SMS
+- `POST /api/auth/verify-phone` - Verify phone with code
+- `POST /api/auth/profile-setup` - Update profile information
 
 API documentation available at: `http://localhost:8000/docs`
 
