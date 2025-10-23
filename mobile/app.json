@@ -15,14 +15,30 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hotride.app",
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "HotRide needs access to your location to find nearby rides and determine your pickup spot.",
+        "NSLocationAlwaysUsageDescription": "HotRide needs access to your location to track your ride and provide real-time updates."
+      },
+      "config": {
+        "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FF5733"
       },
-      "package": "com.hotride.app"
+      "package": "com.hotride.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_ANDROID_GOOGLE_MAPS_API_KEY"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,7 +47,13 @@
       "expo-router",
       "expo-secure-store",
       "@react-native-google-signin/google-signin",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "HotRide needs access to your location to find nearby rides and determine your pickup spot."
+        }
+      ]
     ]
   }
 }
