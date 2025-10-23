@@ -91,6 +91,29 @@ HotRide/
 - ✅ Empty state for no rides
 - ✅ @react-native-community/slider integration
 
+## Stage 4: Ride Tracking & Communication ✅
+
+### Features Implemented
+
+**Backend (FastAPI + MongoDB):**
+- ✅ Booking status updates (pending, accepted, in_progress, completed, cancelled)
+- ✅ Cancel booking with notification support
+- ✅ Booking details endpoint for tracking
+- ✅ Driver assignment to bookings
+
+**Frontend (React Native + Expo):**
+- ✅ **Ride Tracking Screen** - Real-time driver location on map
+- ✅ **Live Driver Location** - Simulated GPS updates every 3 seconds
+- ✅ **ETA Calculation** - Dynamic time updates as driver approaches
+- ✅ **Route Visualization** - Line connecting driver to user location
+- ✅ **Driver Profile Display** - Name, rating, vehicle, license plate
+- ✅ **Call Driver** - Direct phone call functionality
+- ✅ **Chat with Driver** - Real-time messaging interface
+- ✅ **Share Ride** - Share ride details via phone's share sheet
+- ✅ **Cancel Ride** - Cancel booking with driver notification
+- ✅ **Map Auto-fit** - Automatically adjusts to show both markers
+- ✅ **Status Updates** - "Your rider is on the way" with countdown
+
 ## Quick Start
 
 ### Backend Setup
