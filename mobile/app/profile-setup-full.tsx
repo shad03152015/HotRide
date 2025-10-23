@@ -119,8 +119,8 @@ export default function ProfileSetupFullScreen() {
 
       showSuccess('Profile setup complete!');
 
-      // Navigate to home/dashboard
-      router.replace('/home');
+      // Navigate to enable location screen
+      router.replace('/enable-location');
     } catch (error: any) {
       if (error.response?.data?.detail) {
         showError(error.response.data.detail);
@@ -223,7 +223,7 @@ export default function ProfileSetupFullScreen() {
 
           {/* Skip Button */}
           <TouchableOpacity
-            onPress={() => router.replace('/home')}
+            onPress={() => router.replace('/enable-location')}
             style={styles.skipButton}
             activeOpacity={0.7}
           >
