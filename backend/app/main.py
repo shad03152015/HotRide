@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection, create_indexes
-from app.routes import auth, booking, livestream
+from app.routes import auth, booking, livestream, rating
 
 
 @asynccontextmanager
@@ -46,6 +46,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api")
 app.include_router(booking.router, prefix="/api")
 app.include_router(livestream.router, prefix="/api")
+app.include_router(rating.router, prefix="/api")
 
 
 @app.get("/")
