@@ -68,6 +68,8 @@ export default function RootLayout() {
         <Stack.Screen name="enable-location" />
         <Stack.Screen name="home" />
         <Stack.Screen name="edit-profile" />
+        <Stack.Screen name="booking" />
+        <Stack.Screen name="ride-history" />
       </Stack>
       <Toast />
     </>

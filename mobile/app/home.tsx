@@ -67,6 +67,12 @@ export default function HomeScreen() {
         />
 
         <Button 
+          title="Ride History" 
+          onPress={() => router.push('/ride-history')} 
+          style={styles.historyButton} 
+        />
+
+        <Button 
           title="Edit Profile" 
           onPress={() => router.push('/edit-profile')} 
           style={styles.editButton} 
@@ -138,6 +144,10 @@ const styles = StyleSheet.create({
   },
   bookingButtonDisabled: {
     backgroundColor: Colors.placeholder,
+  },
+  historyButton: {
+    width: '100%',
+    marginBottom: 12,
   },
   editButton: {
     width: '100%',
