@@ -23,10 +23,10 @@ from app.models.livestream import (
     STATUS_ENDED,
 )
 
-router = APIRouter(prefix="/api/livestreams", tags=["livestreams"])
+router = APIRouter(prefix="/livestreams", tags=["livestreams"])
 
 
-@router.post("/start", response_model=LivestreamResponse)
+@router.post("/create", response_model=LivestreamResponse)
 async def start_livestream(
     request: StartLivestreamRequest,
     current_user: dict = Depends(get_current_user)

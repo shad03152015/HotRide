@@ -195,10 +195,10 @@ export default function RideTrackingScreen() {
     // Check if ride is complete
     if (progress >= 99) {
       setRidePhase(RidePhase.COMPLETED);
-      showSuccess('Trip completed! Thank you for riding with HotRide.');
+      showSuccess('Trip completed! Please rate your experience.');
       setTimeout(() => {
-        router.replace('/home');
-      }, 3000);
+        router.replace(`/rate-ride?bookingId=${bookingId}`);
+      }, 2000);
     }
   };
 
