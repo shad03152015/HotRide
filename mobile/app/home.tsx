@@ -73,6 +73,12 @@ export default function HomeScreen() {
         />
 
         <Button 
+          title="Live Streams 🔴" 
+          onPress={() => router.push('/browse-livestreams')} 
+          style={styles.livestreamButton} 
+        />
+
+        <Button 
           title="Edit Profile" 
           onPress={() => router.push('/edit-profile')} 
           style={styles.editButton} 
@@ -146,6 +152,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.placeholder,
   },
   historyButton: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  livestreamButton: {
     width: '100%',
     marginBottom: 12,
   },
