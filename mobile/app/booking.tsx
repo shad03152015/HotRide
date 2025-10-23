@@ -21,6 +21,7 @@ import { useLocationStore } from '@/store/locationStore';
 import { useAuth } from '@/hooks/useAuth';
 import { showError, showSuccess } from '@/utils/toast';
 import * as Location from 'expo-location';
+import { createBooking } from '@/services/booking';
 
 // Constants
 const BASE_FARE_PER_KM = 25; // 25 PESOS per km
@@ -188,8 +189,8 @@ export default function BookingScreen() {
     setIsBooking(true);
 
     try {
-      // In production, this would call the backend API to create booking
-      const bookingData = {
+      // Create booking via API
+      const booking = await createBooking({
         pickup_location: {
           address: pickupAddress,
           latitude: currentLocation.latitude,
@@ -206,16 +207,13 @@ export default function BookingScreen() {
         gratuity,
         total_fare: baseFare + gratuity,
         notes,
-      };
+      });
 
-      console.log('Booking data:', bookingData);
-
-      // TODO: Call API endpoint
-      // await api.post('/bookings/create', bookingData);
+      console.log('Booking created:', booking);
 
       showSuccess('Ride booked successfully! Finding nearby drivers...');
 
-      // Navigate to ride tracking screen (to be implemented in next stage)
+      // Navigate to ride tracking screen or home
       setTimeout(() => {
         router.push('/home');
       }, 2000);
