@@ -15,7 +15,7 @@ from app.schemas.rating import (
 )
 from app.models.rating import get_rating_document
 
-router = APIRouter(prefix="/api/ratings", tags=["ratings"])
+router = APIRouter(prefix="/ratings", tags=["ratings"])
 
 
 @router.post("/submit", response_model=RatingResponse)
