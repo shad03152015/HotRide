@@ -66,6 +66,7 @@ export default function RootLayout() {
         <Stack.Screen name="profile-setup" />
         <Stack.Screen name="profile-setup-full" />
         <Stack.Screen name="home" />
+        <Stack.Screen name="edit-profile" />
       </Stack>
       <Toast />
     </>
