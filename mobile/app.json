@@ -18,7 +18,9 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "HotRide needs access to your location to find nearby rides and determine your pickup spot.",
-        "NSLocationAlwaysUsageDescription": "HotRide needs access to your location to track your ride and provide real-time updates."
+        "NSLocationAlwaysUsageDescription": "HotRide needs access to your location to track your ride and provide real-time updates.",
+        "NSCameraUsageDescription": "HotRide needs access to your camera to livestream your ride experience.",
+        "NSMicrophoneUsageDescription": "HotRide needs access to your microphone to livestream your ride experience with audio."
       },
       "config": {
         "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
@@ -32,7 +34,9 @@
       "package": "com.hotride.app",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "RECORD_AUDIO"
       ],
       "config": {
         "googleMaps": {
@@ -52,6 +56,13 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "HotRide needs access to your location to find nearby rides and determine your pickup spot."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "HotRide needs access to your camera to livestream your ride experience.",
+          "microphonePermission": "HotRide needs access to your microphone to livestream your ride experience with audio."
         }
       ]
     ]
