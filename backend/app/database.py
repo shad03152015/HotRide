@@ -23,9 +23,10 @@ async def close_mongo_connection():
 
 
 async def create_indexes():
-    """Create database indexes for users collection"""
+    """Create database indexes for all collections"""
     global db
 
+    # Users collection indexes
     # Unique index on email (sparse to allow null)
     await db.users.create_index("email", unique=True, sparse=True)
 
@@ -41,6 +42,29 @@ async def create_indexes():
 
     # Index on is_active for query performance
     await db.users.create_index("is_active")
+
+    # Bookings collection indexes
+    from app.models.booking import BOOKING_INDEXES
+    for index in BOOKING_INDEXES:
+        if isinstance(index, tuple):
+            await db.bookings.create_index([index])
+        elif isinstance(index, list):
+            await db.bookings.create_index(index)
+
+    # Livestreams collection indexes
+    from app.models.livestream import LIVESTREAM_INDEXES, LIVE_COMMENT_INDEXES
+    for index in LIVESTREAM_INDEXES:
+        if isinstance(index, tuple):
+            await db.livestreams.create_index([index])
+        elif isinstance(index, list):
+            await db.livestreams.create_index(index)
+
+    # Live comments collection indexes
+    for index in LIVE_COMMENT_INDEXES:
+        if isinstance(index, tuple):
+            await db.live_comments.create_index([index])
+        elif isinstance(index, list):
+            await db.live_comments.create_index(index)
 
     print("Database indexes created successfully")
 

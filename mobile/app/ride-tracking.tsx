@@ -161,6 +161,10 @@ export default function RideTrackingScreen() {
     }
   };
 
+  const handleGoLive = () => {
+    router.push(`/livestream?bookingId=${bookingId}`);
+  };
+
   const handleCancelRide = () => {
     Alert.alert(
       'Cancel Ride',
@@ -337,6 +341,13 @@ export default function RideTrackingScreen() {
               <Ionicons name="chatbubble" size={24} color={Colors.success} />
             </View>
             <Text style={styles.actionButtonText}>Chat</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionButton} onPress={handleGoLive}>
+            <View style={[styles.actionIconContainer, styles.liveButton]}>
+              <Ionicons name="videocam" size={24} color="#FF0000" />
+            </View>
+            <Text style={styles.actionButtonText}>Go Live</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
@@ -535,6 +546,9 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     backgroundColor: Colors.background,
+  },
+  liveButton: {
+    backgroundColor: '#FFE8E8',
   },
   actionButtonText: {
     fontSize: 14,
