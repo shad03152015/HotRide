@@ -66,6 +66,14 @@ async def create_indexes():
         elif isinstance(index, list):
             await db.live_comments.create_index(index)
 
+    # Ratings collection indexes
+    from app.models.rating import RATING_INDEXES
+    for index in RATING_INDEXES:
+        if isinstance(index, tuple):
+            await db.ratings.create_index([index])
+        elif isinstance(index, list):
+            await db.ratings.create_index(index)
+
     print("Database indexes created successfully")
 
 
