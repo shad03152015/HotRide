@@ -21,6 +21,22 @@ class Settings(BaseSettings):
     # CORS Configuration
     CORS_ORIGINS: str
 
+    # Email Configuration (SMTP)
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
+    SMTP_FROM_EMAIL: str
+    SMTP_FROM_NAME: str
+
+    # Twilio Configuration (SMS)
+    TWILIO_ACCOUNT_SID: str
+    TWILIO_AUTH_TOKEN: str
+    TWILIO_PHONE_NUMBER: str
+
+    # Frontend URL (for email verification links)
+    FRONTEND_URL: str
+
     class Config:
         env_file = ".env"
         case_sensitive = True
