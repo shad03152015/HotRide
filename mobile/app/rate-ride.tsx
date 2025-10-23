@@ -18,6 +18,7 @@ import { Colors } from '@/constants/Colors';
 import { showError, showSuccess } from '@/utils/toast';
 import { getBooking } from '@/services/booking';
 import type { Booking } from '@/services/booking';
+import { submitRating } from '@/services/rating';
 
 // Mock driver data - would come from booking in production
 const MOCK_DRIVER = {
@@ -63,7 +64,11 @@ export default function RateRideScreen() {
     const defaultRating = Math.random() > 0.5 ? 5 : 4;
 
     try {
-      // In production: await submitRideRating(bookingId, defaultRating, '');
+      await submitRating({
+        booking_id: bookingId,
+        rating: defaultRating,
+        comment: '',
+      });
       console.log('Auto-submitted rating:', defaultRating);
     } catch (error) {
       console.error('Failed to submit default rating:', error);
@@ -100,10 +105,11 @@ export default function RateRideScreen() {
     setIsSubmitting(true);
 
     try {
-      // In production: await submitRideRating(bookingId, rating, comment);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await submitRating({
+        booking_id: bookingId,
+        rating,
+        comment,
+      });
 
       showSuccess('Thank you for your feedback!');
 
