@@ -44,15 +44,19 @@ HotRide/
 - ✅ Profile setup endpoint
 - ✅ Email service with SMTP
 - ✅ SMS service integration
+- ✅ JWT authentication middleware
+- ✅ Update profile endpoint (authenticated)
 
 **Frontend (React Native + Expo):**
 - ✅ Sign up / Registration screen
 - ✅ Email verification screen with 6-digit code input
 - ✅ Phone verification screen with 6-digit code input
 - ✅ Profile setup screen with photo upload
+- ✅ Edit profile screen with photo upload
 - ✅ Image picker integration (expo-image-picker)
 - ✅ Complete registration flow
 - ✅ Terms & Conditions acceptance
+- ✅ Read-only email and phone display
 
 ## Quick Start
 
@@ -181,6 +185,7 @@ For mobile testing on same network:
 - `POST /api/auth/send-phone-code` - Send phone verification SMS
 - `POST /api/auth/verify-phone` - Verify phone with code
 - `POST /api/auth/profile-setup` - Update profile information
+- `PUT /api/auth/update-profile` - Update authenticated user's profile (requires Bearer token)
 
 API documentation available at: `http://localhost:8000/docs`
 
