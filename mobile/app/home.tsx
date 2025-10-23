@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import Button from '@/components/ui/Button';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/hooks/useAuth';
+import { useLocationStore } from '@/store/locationStore';
+import * as Location from 'expo-location';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { hasLocationPermission, setLocationPermission } = useLocationStore();
+
+  useEffect(() => {
+    // Check location permission status on mount
+    checkLocationPermission();
+  }, []);
+
+  const checkLocationPermission = async () => {
+    const { status } = await Location.getForegroundPermissionsAsync();
+    setLocationPermission(status === 'granted');
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -25,9 +38,33 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Location Status */}
+        {!hasLocationPermission && (
+          <View style={styles.locationWarning}>
+            <Text style={styles.locationWarningText}>
+              📍 Location access required to book rides
+            </Text>
+          </View>
+        )}
+
         <Text style={styles.message}>
-          Stage 3 features (Home screen, Map, Ride booking) will be implemented next.
+          Stage 3 features (Map, Ride booking) will be implemented next.
         </Text>
+
+        {/* Booking Button */}
+        <Button
+          title={hasLocationPermission ? 'Book a Ride' : 'Enable Location to Book'}
+          onPress={() =>
+            hasLocationPermission
+              ? router.push('/booking')
+              : router.push('/enable-location')
+          }
+          style={[
+            styles.bookingButton,
+            !hasLocationPermission && styles.bookingButtonDisabled,
+          ]}
+          disabled={false}
+        />
 
         <Button 
           title="Edit Profile" 
@@ -66,7 +103,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     padding: 20,
     borderRadius: 12,
-    marginBottom: 32,
+    marginBottom: 16,
     width: '100%',
   },
   infoText: {
@@ -74,12 +111,33 @@ const styles = StyleSheet.create({
     color: Colors.secondary,
     marginBottom: 8,
   },
+  locationWarning: {
+    backgroundColor: Colors.warning,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    width: '100%',
+  },
+  locationWarningText: {
+    color: Colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   message: {
     fontSize: 16,
     color: Colors.placeholder,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
     paddingHorizontal: 20,
+  },
+  bookingButton: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  bookingButtonDisabled: {
+    backgroundColor: Colors.placeholder,
   },
   editButton: {
     width: '100%',
