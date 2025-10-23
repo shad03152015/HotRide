@@ -114,6 +114,24 @@ HotRide/
 - ✅ **Map Auto-fit** - Automatically adjusts to show both markers
 - ✅ **Status Updates** - "Your rider is on the way" with countdown
 
+## Stage 5: Finding Driver & Advertisements ✅
+
+### Features Implemented
+
+**Frontend (React Native + Expo):**
+- ✅ **Finding Driver Screen** - Waiting screen while searching for drivers
+- ✅ **Advertisement Modal** - Full-screen ads with countdown timer
+- ✅ **Ad Timing Logic** - Display ad for 10 seconds every 2 minutes
+- ✅ **Ad Auto-dismiss** - Automatically closes after 10 seconds
+- ✅ **Manual Close** - X button to close ad early
+- ✅ **Countdown Display** - Shows remaining seconds on ad
+- ✅ **CTA Button** - "Learn More" button with external link support
+- ✅ **Search Timer** - Shows elapsed time while finding driver
+- ✅ **Next Update Countdown** - Shows time until next ad
+- ✅ **Status Tips** - Helpful information while waiting
+- ✅ **Cancel During Search** - Cancel booking while finding driver
+- ✅ **Driver Found Simulation** - Auto-navigates after 15 seconds (demo)
+
 ## Quick Start
 
 ### Backend Setup
