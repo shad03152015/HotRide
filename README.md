@@ -240,6 +240,14 @@ For mobile testing on same network:
 - `POST /api/auth/profile-setup` - Update profile information
 - `PUT /api/auth/update-profile` - Update authenticated user's profile (requires Bearer token)
 
+### Ride Booking (Stage 3)
+
+- `POST /api/bookings/create` - Create new ride booking (requires Bearer token)
+- `GET /api/bookings/my-bookings` - Get user's booking history (requires Bearer token)
+- `GET /api/bookings/{booking_id}` - Get specific booking details (requires Bearer token)
+- `PUT /api/bookings/{booking_id}/status` - Update booking status (requires Bearer token)
+- `DELETE /api/bookings/{booking_id}` - Cancel booking (requires Bearer token)
+
 API documentation available at: `http://localhost:8000/docs`
 
 ## Testing
