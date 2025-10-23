@@ -33,6 +33,13 @@ const MOCK_DRIVER = {
 // Average speed for ETA calculation (km/h)
 const AVERAGE_SPEED_KMH = 30;
 
+// Ride phases
+enum RidePhase {
+  DRIVER_COMING = 'driver_coming',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+}
+
 export default function RideTrackingScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -44,8 +51,13 @@ export default function RideTrackingScreen() {
     latitude: number;
     longitude: number;
   } | null>(null);
-  const [eta, setEta] = useState(5); // minutes
+  const [ridePhase, setRidePhase] = useState<RidePhase>(RidePhase.DRIVER_COMING);
+  const [tripProgress, setTripProgress] = useState(0); // 0-100%
+  const [originalEstimateMinutes, setOriginalEstimateMinutes] = useState(0);
+  const [timeRemainingMinutes, setTimeRemainingMinutes] = useState(0);
+  const [eta, setEta] = useState(5); // minutes for pickup
   const [isLoading, setIsLoading] = useState(true);
+  const [elapsedTimeSeconds, setElapsedTimeSeconds] = useState(0);
   const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
@@ -62,21 +74,59 @@ export default function RideTrackingScreen() {
         longitude: booking.pickup_location.longitude + 0.01,
       };
       setDriverLocation(initialDriverLocation);
+      setOriginalEstimateMinutes(booking.estimated_time);
+      setTimeRemainingMinutes(booking.estimated_time);
 
-      // Start simulating driver movement
-      const interval = setInterval(() => {
-        updateDriverLocation();
-      }, 3000); // Update every 3 seconds
-
-      return () => clearInterval(interval);
+      // Simulate driver pickup after 15 seconds
+      setTimeout(() => {
+        setRidePhase(RidePhase.IN_PROGRESS);
+        showSuccess('Driver has picked you up! Trip started.');
+      }, 15000);
     }
   }, [booking, currentLocation]);
 
+  // Update driver location
   useEffect(() => {
-    if (driverLocation && currentLocation) {
-      calculateETA();
+    if (!booking || !currentLocation || !driverLocation) return;
+
+    const interval = setInterval(() => {
+      if (ridePhase === RidePhase.DRIVER_COMING) {
+        updateDriverLocationToPickup();
+      } else if (ridePhase === RidePhase.IN_PROGRESS) {
+        updateDriverLocationToDestination();
+      }
+    }, 3000); // Update every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [booking, currentLocation, driverLocation, ridePhase]);
+
+  // Track elapsed time and progress (update every minute)
+  useEffect(() => {
+    if (ridePhase !== RidePhase.IN_PROGRESS) return;
+
+    const interval = setInterval(() => {
+      setElapsedTimeSeconds((prev) => prev + 60); // Increment by 1 minute
+
+      // Calculate progress based on elapsed time
+      if (originalEstimateMinutes > 0) {
+        const elapsedMinutes = elapsedTimeSeconds / 60;
+        const progress = Math.min(100, (elapsedMinutes / originalEstimateMinutes) * 100);
+        setTripProgress(progress);
+
+        const remaining = Math.max(0, originalEstimateMinutes - elapsedMinutes);
+        setTimeRemainingMinutes(Math.ceil(remaining));
+      }
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [ridePhase, elapsedTimeSeconds, originalEstimateMinutes]);
+
+  // Calculate ETA for pickup
+  useEffect(() => {
+    if (ridePhase === RidePhase.DRIVER_COMING && driverLocation && currentLocation) {
+      calculatePickupETA();
     }
-  }, [driverLocation, currentLocation]);
+  }, [driverLocation, currentLocation, ridePhase]);
 
   const fetchBooking = async () => {
     try {
@@ -90,7 +140,7 @@ export default function RideTrackingScreen() {
     }
   };
 
-  const updateDriverLocation = () => {
+  const updateDriverLocationToPickup = () => {
     if (!driverLocation || !currentLocation) return;
 
     // Simulate driver moving towards user location
@@ -104,38 +154,107 @@ export default function RideTrackingScreen() {
     };
 
     setDriverLocation(newLocation);
+  };
 
-    // Fit map to show both markers
-    if (mapRef.current) {
-      mapRef.current.fitToCoordinates(
-        [newLocation, currentLocation],
-        {
-          edgePadding: { top: 100, right: 50, bottom: 300, left: 50 },
-          animated: true,
-        }
-      );
+  const updateDriverLocationToDestination = () => {
+    if (!driverLocation || !booking) return;
+
+    // Simulate driver moving towards destination
+    const destLat = booking.destination.latitude;
+    const destLng = booking.destination.longitude;
+
+    const latDiff = destLat - driverLocation.latitude;
+    const lngDiff = destLng - driverLocation.longitude;
+
+    // Move 2% closer to destination (slower progress)
+    const newLocation = {
+      latitude: driverLocation.latitude + latDiff * 0.02,
+      longitude: driverLocation.longitude + lngDiff * 0.02,
+    };
+
+    setDriverLocation(newLocation);
+
+    // Update trip progress based on distance
+    const totalDistance = calculateDistance(
+      booking.pickup_location.latitude,
+      booking.pickup_location.longitude,
+      destLat,
+      destLng
+    );
+
+    const remainingDistance = calculateDistance(
+      newLocation.latitude,
+      newLocation.longitude,
+      destLat,
+      destLng
+    );
+
+    const progress = Math.min(100, ((totalDistance - remainingDistance) / totalDistance) * 100);
+    setTripProgress(progress);
+
+    // Check if ride is complete
+    if (progress >= 99) {
+      setRidePhase(RidePhase.COMPLETED);
+      showSuccess('Trip completed! Thank you for riding with HotRide.');
+      setTimeout(() => {
+        router.replace('/home');
+      }, 3000);
     }
   };
 
-  const calculateETA = () => {
+  const calculatePickupETA = () => {
     if (!driverLocation || !currentLocation) return;
 
-    // Calculate distance using Haversine formula
-    const R = 6371; // Earth's radius in km
-    const dLat = ((currentLocation.latitude - driverLocation.latitude) * Math.PI) / 180;
-    const dLon = ((currentLocation.longitude - driverLocation.longitude) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((driverLocation.latitude * Math.PI) / 180) *
-        Math.cos((currentLocation.latitude * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distanceKm = R * c;
+    const distanceKm = calculateDistance(
+      driverLocation.latitude,
+      driverLocation.longitude,
+      currentLocation.latitude,
+      currentLocation.longitude
+    );
 
     // Calculate ETA in minutes
     const timeMinutes = Math.max(1, Math.round((distanceKm / AVERAGE_SPEED_KMH) * 60));
     setEta(timeMinutes);
+  };
+
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    // Haversine formula
+    const R = 6371; // Earth's radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const getProgressCoordinates = () => {
+    if (!booking || !driverLocation || ridePhase !== RidePhase.IN_PROGRESS) return null;
+
+    const pickup = booking.pickup_location;
+    const destination = booking.destination;
+
+    // Calculate intermediate point based on progress
+    const progressRatio = tripProgress / 100;
+    const currentPoint = {
+      latitude: pickup.latitude + (destination.latitude - pickup.latitude) * progressRatio,
+      longitude: pickup.longitude + (destination.longitude - pickup.longitude) * progressRatio,
+    };
+
+    return {
+      completed: [
+        { latitude: pickup.latitude, longitude: pickup.longitude },
+        currentPoint,
+      ],
+      remaining: [
+        currentPoint,
+        { latitude: destination.latitude, longitude: destination.longitude },
+      ],
+    };
   };
 
   const handleCall = () => {
@@ -211,6 +330,8 @@ export default function RideTrackingScreen() {
     );
   }
 
+  const progressCoords = getProgressCoordinates();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
@@ -228,18 +349,50 @@ export default function RideTrackingScreen() {
         }}
         showsUserLocation={false}
       >
-        {/* User Location Marker */}
-        <Marker
-          coordinate={{
-            latitude: currentLocation.latitude,
-            longitude: currentLocation.longitude,
-          }}
-          title="Your Location"
-        >
-          <View style={styles.userMarker}>
-            <Ionicons name="location" size={32} color={Colors.primary} />
-          </View>
-        </Marker>
+        {/* Pickup Location Marker */}
+        {ridePhase === RidePhase.IN_PROGRESS && (
+          <Marker
+            coordinate={{
+              latitude: booking.pickup_location.latitude,
+              longitude: booking.pickup_location.longitude,
+            }}
+            title="Pickup Location"
+          >
+            <View style={styles.pickupMarker}>
+              <Ionicons name="radio-button-on" size={24} color={Colors.success} />
+            </View>
+          </Marker>
+        )}
+
+        {/* User/Current Location Marker */}
+        {ridePhase === RidePhase.DRIVER_COMING && (
+          <Marker
+            coordinate={{
+              latitude: currentLocation.latitude,
+              longitude: currentLocation.longitude,
+            }}
+            title="Your Location"
+          >
+            <View style={styles.userMarker}>
+              <Ionicons name="location" size={32} color={Colors.primary} />
+            </View>
+          </Marker>
+        )}
+
+        {/* Destination Marker */}
+        {ridePhase === RidePhase.IN_PROGRESS && (
+          <Marker
+            coordinate={{
+              latitude: booking.destination.latitude,
+              longitude: booking.destination.longitude,
+            }}
+            title="Destination"
+          >
+            <View style={styles.destinationMarker}>
+              <Ionicons name="location" size={32} color={Colors.error} />
+            </View>
+          </Marker>
+        )}
 
         {/* Driver Location Marker */}
         <Marker
@@ -257,22 +410,47 @@ export default function RideTrackingScreen() {
           </View>
         </Marker>
 
-        {/* Route Line */}
-        <Polyline
-          coordinates={[
-            {
-              latitude: driverLocation.latitude,
-              longitude: driverLocation.longitude,
-            },
-            {
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-            },
-          ]}
-          strokeColor={Colors.primary}
-          strokeWidth={4}
-          lineDashPattern={[1]}
-        />
+        {/* Route Lines */}
+        {ridePhase === RidePhase.DRIVER_COMING ? (
+          // Driver coming to pickup
+          <Polyline
+            coordinates={[
+              {
+                latitude: driverLocation.latitude,
+                longitude: driverLocation.longitude,
+              },
+              {
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+              },
+            ]}
+            strokeColor={Colors.primary}
+            strokeWidth={4}
+            lineDashPattern={[1]}
+          />
+        ) : (
+          // In progress - show completed and remaining portions
+          <>
+            {/* Completed portion (solid green) */}
+            {progressCoords && (
+              <Polyline
+                coordinates={progressCoords.completed}
+                strokeColor={Colors.success}
+                strokeWidth={5}
+              />
+            )}
+
+            {/* Remaining portion (dashed gray) */}
+            {progressCoords && (
+              <Polyline
+                coordinates={progressCoords.remaining}
+                strokeColor={Colors.placeholder}
+                strokeWidth={4}
+                lineDashPattern={[10, 5]}
+              />
+            )}
+          </>
+        )}
       </MapView>
 
       {/* Map Controls */}
@@ -300,10 +478,33 @@ export default function RideTrackingScreen() {
         <View style={styles.dragHandle} />
 
         {/* Status Header */}
-        <View style={styles.statusHeader}>
-          <Text style={styles.statusText}>Your rider is on the way</Text>
-          <Text style={styles.etaText}>Arriving in {eta} min</Text>
-        </View>
+        {ridePhase === RidePhase.DRIVER_COMING ? (
+          <View style={styles.statusHeader}>
+            <Text style={styles.statusText}>Your rider is on the way</Text>
+            <Text style={styles.etaText}>Arriving in {eta} min</Text>
+          </View>
+        ) : (
+          <View style={styles.statusHeader}>
+            <Text style={styles.statusText}>Trip in Progress</Text>
+            <View style={styles.progressInfo}>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${tripProgress}%` }]} />
+              </View>
+              <Text style={styles.progressText}>{Math.round(tripProgress)}% Complete</Text>
+            </View>
+            <View style={styles.timeInfo}>
+              <View style={styles.timeItem}>
+                <Text style={styles.timeLabel}>Original Estimate</Text>
+                <Text style={styles.timeValue}>{originalEstimateMinutes} min</Text>
+              </View>
+              <View style={styles.timeDivider} />
+              <View style={styles.timeItem}>
+                <Text style={styles.timeLabel}>Time Remaining</Text>
+                <Text style={styles.timeValue}>{timeRemainingMinutes} min</Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Driver Info */}
         <View style={styles.driverInfo}>
@@ -381,7 +582,15 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
+  pickupMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   userMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  destinationMarker: {
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -461,6 +670,54 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: Colors.primary,
+  },
+  progressInfo: {
+    width: '100%',
+    marginTop: 12,
+  },
+  progressBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: Colors.inputBorder,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.success,
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.success,
+    textAlign: 'center',
+  },
+  timeInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.inputBorder,
+  },
+  timeItem: {
+    alignItems: 'center',
+  },
+  timeLabel: {
+    fontSize: 13,
+    color: Colors.placeholder,
+    marginBottom: 4,
+  },
+  timeValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.secondary,
+  },
+  timeDivider: {
+    width: 1,
+    backgroundColor: Colors.inputBorder,
   },
   driverInfo: {
     flexDirection: 'row',
