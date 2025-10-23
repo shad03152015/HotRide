@@ -70,6 +70,7 @@ export default function RootLayout() {
         <Stack.Screen name="edit-profile" />
         <Stack.Screen name="booking" />
         <Stack.Screen name="ride-history" />
+        <Stack.Screen name="finding-driver" />
         <Stack.Screen name="ride-tracking" />
         <Stack.Screen name="chat" />
       </Stack>
