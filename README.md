@@ -62,6 +62,35 @@ HotRide/
 - ✅ Terms & Conditions acceptance
 - ✅ Read-only email and phone display
 
+## Stage 3: Ride Booking ✅
+
+### Features Implemented
+
+**Backend (FastAPI + MongoDB):**
+- ✅ Booking model and schema
+- ✅ Create booking endpoint (authenticated)
+- ✅ Get user bookings (ride history)
+- ✅ Get specific booking details
+- ✅ Update booking status
+- ✅ Cancel booking endpoint
+- ✅ Fare calculation (25 PESOS per km base fare)
+- ✅ MongoDB booking collection with indexes
+
+**Frontend (React Native + Expo):**
+- ✅ Booking screen with interactive map
+- ✅ Destination search with geocoding
+- ✅ Distance calculation (Haversine formula)
+- ✅ Estimated time calculation
+- ✅ Base fare calculation (25 PESOS/km)
+- ✅ Gratuity/tip system (slider + percentage buttons)
+- ✅ Total fare display (base + gratuity)
+- ✅ Notes for driver input
+- ✅ Ride history screen
+- ✅ Booking list with status badges
+- ✅ Pull-to-refresh ride history
+- ✅ Empty state for no rides
+- ✅ @react-native-community/slider integration
+
 ## Quick Start
 
 ### Backend Setup
