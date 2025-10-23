@@ -137,6 +137,8 @@ npm start
 - Zustand (state management)
 - Axios (API calls)
 - Expo SecureStore (secure storage)
+- Expo Location (location permissions)
+- React Native Maps (map integration)
 - Google Sign In SDK
 - Apple Authentication SDK
 
@@ -165,6 +167,24 @@ npm start
 - `EXPO_PUBLIC_API_URL` - Backend API URL
 - `EXPO_PUBLIC_GOOGLE_CLIENT_ID` - Google OAuth client ID
 - `EXPO_PUBLIC_APPLE_CLIENT_ID` - Apple bundle identifier
+
+### Google Maps Configuration
+
+**For iOS:**
+1. Get Google Maps API key from Google Cloud Console
+2. Enable Maps SDK for iOS
+3. Add API key to `mobile/app.json` under `ios.config.googleMapsApiKey`
+
+**For Android:**
+1. Get Google Maps API key from Google Cloud Console
+2. Enable Maps SDK for Android
+3. Add API key to `mobile/app.json` under `android.config.googleMaps.apiKey`
+4. Add SHA-1 certificate fingerprint to Google Cloud Console
+
+**Location Permissions:**
+- iOS: Automatically configured via `expo-location` plugin
+- Android: Permissions added to `app.json` (ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION)
+- Users are prompted to enable location after profile setup
 
 ### Network Configuration
 
