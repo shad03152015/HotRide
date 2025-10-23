@@ -22,14 +22,17 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isReady) return;
 
-    const inAuthGroup = segments[0] === 'login';
+    // Public routes that don't require authentication
+    const publicRoutes = ['login', 'signup', 'verify-email', 'verify-phone', 'profile-setup-full'];
+    const currentRoute = segments[0];
+    const isPublicRoute = publicRoutes.includes(currentRoute);
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // User not authenticated, redirect to login
+    if (!isAuthenticated && !isPublicRoute && currentRoute) {
+      // User not authenticated and trying to access protected route
       router.replace('/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      // User authenticated but on login screen, redirect to profile-setup
-      router.replace('/profile-setup');
+    } else if (isAuthenticated && currentRoute === 'login') {
+      // User authenticated but on login screen, redirect to home
+      router.replace('/home');
     }
   }, [isAuthenticated, segments, isReady]);
 
@@ -57,7 +60,12 @@ export default function RootLayout() {
     <>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
+        <Stack.Screen name="signup" />
+        <Stack.Screen name="verify-email" />
+        <Stack.Screen name="verify-phone" />
         <Stack.Screen name="profile-setup" />
+        <Stack.Screen name="profile-setup-full" />
+        <Stack.Screen name="home" />
       </Stack>
       <Toast />
     </>

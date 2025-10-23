@@ -125,3 +125,31 @@ async def find_user_by_oauth(provider: str, oauth_id: str) -> Optional[Dict]:
     """
     db = get_database()
     return await db.users.find_one({"oauth_provider": provider, "oauth_id": oauth_id})
+
+
+async def update_user(user_id: str, update_data: Dict) -> Optional[Dict]:
+    """
+    Update user information
+
+    Args:
+        user_id: User's MongoDB ObjectId as string
+        update_data: Dictionary of fields to update
+
+    Returns:
+        Updated user document or None if not found
+    """
+    from bson import ObjectId
+    db = get_database()
+    
+    try:
+        result = await db.users.find_one_and_update(
+            {"_id": ObjectId(user_id)},
+            {"$set": update_data},
+            return_document=True
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update user",
+        )

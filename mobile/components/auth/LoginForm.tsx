@@ -56,8 +56,8 @@ export default function LoginForm() {
       // Store token and user data
       await setAuth(response.access_token, response.user);
 
-      // Navigate to ProfileSetup
-      router.replace('/profile-setup');
+      // Navigate to Home
+      router.replace('/home');
     } catch (error: any) {
       // Error already handled by API interceptor
       // But show specific error message if available

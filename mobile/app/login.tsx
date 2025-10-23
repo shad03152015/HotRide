@@ -8,12 +8,14 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialButtons from '@/components/auth/SocialButtons';
-import { showError } from '@/utils/toast';
 
 export default function LoginScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
@@ -41,7 +43,7 @@ export default function LoginScreen() {
 
           {/* Create Account Link */}
           <TouchableOpacity
-            onPress={() => showError('Feature coming in next stage')}
+            onPress={() => router.push('/signup')}
             style={styles.createAccountContainer}
             activeOpacity={0.7}
           >
