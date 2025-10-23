@@ -5,80 +5,104 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator,
   TouchableOpacity,
   Alert,
+  FlatList,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import AdvertisementModal from '@/components/ads/AdvertisementModal';
 import { cancelBooking } from '@/services/booking';
 import { showError, showSuccess } from '@/utils/toast';
 
-const AD_INTERVAL_MS = 120000; // 2 minutes
-const AD_DURATION_SECONDS = 10;
+interface RiderOffer {
+  id: string;
+  name: string;
+  rating: number;
+  etaMinutes: number;
+  vehicle: string;
+  profileImage: string;
+  distance: number; // in km for sorting
+}
 
 export default function FindingDriverScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const bookingId = params.bookingId as string;
 
-  const [showAd, setShowAd] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [nextAdTime, setNextAdTime] = useState(AD_INTERVAL_MS / 1000); // seconds
+  const [offers, setOffers] = useState<RiderOffer[]>([]);
+  const [isAccepting, setIsAccepting] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate finding driver
-    // In production, this would listen to WebSocket/API for driver acceptance
-
-    // Timer for elapsed time
-    const elapsedInterval = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
-    }, 1000);
-
-    // Check for ads every second
-    const adCheckInterval = setInterval(() => {
-      checkAndShowAd();
-    }, 1000);
-
-    // Simulate driver found after 15 seconds (for demo)
-    const driverFoundTimeout = setTimeout(() => {
-      handleDriverFound();
-    }, 15000);
-
-    return () => {
-      clearInterval(elapsedInterval);
-      clearInterval(adCheckInterval);
-      clearTimeout(driverFoundTimeout);
-    };
+    // Simulate receiving offers from riders
+    // In production, this would be real-time via WebSocket/API
+    generateMockOffers();
   }, []);
 
-  const checkAndShowAd = () => {
-    // Show ad every 2 minutes (120 seconds)
-    if (elapsedTime > 0 && elapsedTime % (AD_INTERVAL_MS / 1000) === 0) {
-      setShowAd(true);
-      setNextAdTime(elapsedTime + (AD_INTERVAL_MS / 1000));
+  const generateMockOffers = () => {
+    const mockOffers: RiderOffer[] = [
+      {
+        id: 'rider-1',
+        name: 'Miguel S.',
+        rating: 4.9,
+        etaMinutes: 2,
+        vehicle: 'Yamaha NMAX',
+        profileImage: 'https://i.pravatar.cc/150?img=12',
+        distance: 0.5,
+      },
+      {
+        id: 'rider-2',
+        name: 'John D.',
+        rating: 4.8,
+        etaMinutes: 3,
+        vehicle: 'Honda Click 125',
+        profileImage: 'https://i.pravatar.cc/150?img=33',
+        distance: 0.8,
+      },
+      {
+        id: 'rider-3',
+        name: 'Rico P.',
+        rating: 4.7,
+        etaMinutes: 5,
+        vehicle: 'Suzuki Burgman',
+        profileImage: 'https://i.pravatar.cc/150?img=15',
+        distance: 1.2,
+      },
+    ];
+
+    // Sort by distance (closest first)
+    const sortedOffers = mockOffers.sort((a, b) => a.distance - b.distance);
+    setOffers(sortedOffers);
+  };
+
+  const handleAcceptOffer = async (offer: RiderOffer) => {
+    setIsAccepting(offer.id);
+
+    try {
+      // In production, this would call API to accept the offer and notify rider
+      // await acceptRiderOffer(bookingId, offer.id);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      showSuccess(`${offer.name} accepted! Preparing your ride...`);
+
+      // Navigate to ride tracking with booking ID
+      setTimeout(() => {
+        router.replace(`/ride-tracking?bookingId=${bookingId}&driverId=${offer.id}`);
+      }, 1500);
+    } catch (error: any) {
+      showError(error.response?.data?.detail || 'Failed to accept offer');
+      setIsAccepting(null);
     }
-  };
-
-  const handleAdClose = () => {
-    setShowAd(false);
-  };
-
-  const handleDriverFound = () => {
-    showSuccess('Driver found! Getting ride details...');
-
-    // Navigate to ride tracking
-    setTimeout(() => {
-      router.replace(`/ride-tracking?bookingId=${bookingId}`);
-    }, 1500);
   };
 
   const handleCancel = () => {
     Alert.alert(
       'Cancel Booking',
-      'Are you sure you want to cancel? We are still finding a driver for you.',
+      'Are you sure you want to cancel? You have pending offers from riders.',
       [
         {
           text: 'No, Continue',
@@ -106,96 +130,89 @@ export default function FindingDriverScreen() {
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const renderOfferItem = ({ item }: { item: RiderOffer }) => (
+    <View style={styles.offerCard}>
+      <View style={styles.offerContent}>
+        {/* Profile Image */}
+        <Image
+          source={{ uri: item.profileImage }}
+          style={styles.profileImage}
+        />
+
+        {/* Rider Info */}
+        <View style={styles.riderInfo}>
+          <Text style={styles.riderName}>{item.name}</Text>
+          <View style={styles.riderDetails}>
+            <View style={styles.ratingContainer}>
+              <Text style={styles.ratingText}>{item.rating}</Text>
+              <Ionicons name="star" size={14} color={Colors.primary} />
+            </View>
+            <Text style={styles.detailSeparator}>•</Text>
+            <Text style={styles.etaText}>{item.etaMinutes} min away</Text>
+          </View>
+          <Text style={styles.vehicleText}>{item.vehicle}</Text>
+        </View>
+
+        {/* Accept Button */}
+        <TouchableOpacity
+          style={[
+            styles.acceptButton,
+            isAccepting === item.id && styles.acceptButtonDisabled,
+          ]}
+          onPress={() => handleAcceptOffer(item)}
+          disabled={isAccepting !== null}
+        >
+          {isAccepting === item.id ? (
+            <ActivityIndicator color={Colors.white} size="small" />
+          ) : (
+            <Text style={styles.acceptButtonText}>Accept</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.secondary} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.white} />
 
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+            <Ionicons name="arrow-back" size={24} color={Colors.secondary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Finding Driver</Text>
+          <Text style={styles.headerTitle}>Finding Your Ride</Text>
           <View style={styles.headerRight} />
         </View>
 
-        {/* Main Content */}
-        <View style={styles.content}>
-          {/* Loading Animation */}
-          <View style={styles.loadingContainer}>
-            <View style={styles.pulsingCircle}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-            </View>
-            <Ionicons
-              name="car-sport"
-              size={48}
-              color={Colors.primary}
-              style={styles.carIcon}
-            />
-          </View>
-
-          {/* Status Text */}
-          <Text style={styles.statusTitle}>Finding your rider...</Text>
-          <Text style={styles.statusSubtitle}>
-            We're matching you with the nearest available driver
+        {/* Subtitle */}
+        <View style={styles.subtitleContainer}>
+          <Text style={styles.subtitle}>
+            {offers.length} {offers.length === 1 ? 'offer' : 'offers'} received. Closest riders are shown first.
           </Text>
-
-          {/* Time Info */}
-          <View style={styles.timeCard}>
-            <View style={styles.timeRow}>
-              <Text style={styles.timeLabel}>Searching for</Text>
-              <Text style={styles.timeValue}>{formatTime(elapsedTime)}</Text>
-            </View>
-
-            {nextAdTime > elapsedTime && (
-              <View style={styles.timeRow}>
-                <Text style={styles.timeLabel}>Next update</Text>
-                <Text style={styles.timeValue}>
-                  {formatTime(nextAdTime - elapsedTime)}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Tips */}
-          <View style={styles.tipsContainer}>
-            <Text style={styles.tipsTitle}>While you wait:</Text>
-            <View style={styles.tipItem}>
-              <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-              <Text style={styles.tipText}>Your ride details are confirmed</Text>
-            </View>
-            <View style={styles.tipItem}>
-              <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-              <Text style={styles.tipText}>Payment method is ready</Text>
-            </View>
-            <View style={styles.tipItem}>
-              <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-              <Text style={styles.tipText}>You'll be notified when driver accepts</Text>
-            </View>
-          </View>
         </View>
+
+        {/* Offers List */}
+        <FlatList
+          data={offers}
+          renderItem={renderOfferItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
 
         {/* Cancel Button */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+          <TouchableOpacity 
+            style={styles.cancelButton} 
+            onPress={handleCancel}
+            disabled={isAccepting !== null}
+          >
             <Text style={styles.cancelButtonText}>Cancel Booking</Text>
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Advertisement Modal */}
-      <AdvertisementModal
-        visible={showAd}
-        onClose={handleAdClose}
-        duration={AD_DURATION_SECONDS}
-      />
     </SafeAreaView>
   );
 }
@@ -203,7 +220,7 @@ export default function FindingDriverScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.background,
   },
   container: {
     flex: 1,
@@ -214,115 +231,126 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 16,
+    backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.inputBorder,
   },
   backButton: {
     padding: 8,
     width: 60,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: Colors.white,
+    color: Colors.secondary,
   },
   headerRight: {
     width: 60,
   },
-  content: {
-    flex: 1,
-    alignItems: 'center',
+  subtitleContainer: {
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingVertical: 16,
+    backgroundColor: Colors.white,
   },
-  loadingContainer: {
-    width: 160,
-    height: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 40,
-    position: 'relative',
-  },
-  pulsingCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(255, 87, 51, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  carIcon: {
-    position: 'absolute',
-  },
-  statusTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.white,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  statusSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
-    marginBottom: 40,
-    paddingHorizontal: 20,
-  },
-  timeCard: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 32,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  timeLabel: {
+  subtitle: {
     fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: Colors.placeholder,
+    lineHeight: 22,
   },
-  timeValue: {
+  listContent: {
+    padding: 16,
+  },
+  offerCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  offerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.inputBorder,
+  },
+  riderInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  riderName: {
     fontSize: 18,
-    fontWeight: '700',
-    color: Colors.white,
+    fontWeight: '600',
+    color: Colors.secondary,
+    marginBottom: 4,
   },
-  tipsContainer: {
-    width: '100%',
+  riderDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
   },
-  tipsTitle: {
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  detailSeparator: {
+    fontSize: 15,
+    color: Colors.placeholder,
+    marginHorizontal: 8,
+  },
+  etaText: {
+    fontSize: 15,
+    color: Colors.placeholder,
+  },
+  vehicleText: {
+    fontSize: 14,
+    color: Colors.placeholder,
+    marginTop: 2,
+  },
+  acceptButton: {
+    backgroundColor: Colors.success,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  acceptButtonDisabled: {
+    opacity: 0.6,
+  },
+  acceptButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.white,
-    marginBottom: 16,
-  },
-  tipItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
-  },
-  tipText: {
-    fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.8)',
-    flex: 1,
   },
   footer: {
     paddingHorizontal: 24,
     paddingVertical: 20,
+    backgroundColor: Colors.white,
+    borderTopWidth: 1,
+    borderTopColor: Colors.inputBorder,
   },
   cancelButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingVertical: 16,
-    borderRadius: 12,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.white,
+    color: Colors.error,
   },
 });
