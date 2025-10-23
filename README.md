@@ -33,6 +33,27 @@ HotRide/
 - ✅ Navigation with Expo Router
 - ✅ State management with Zustand
 
+## Stage 2: Registration & Verification ✅
+
+### Features Implemented
+
+**Backend (FastAPI + MongoDB):**
+- ✅ User registration endpoint
+- ✅ Email verification with 6-digit codes
+- ✅ Phone verification with SMS (Twilio)
+- ✅ Profile setup endpoint
+- ✅ Email service with SMTP
+- ✅ SMS service integration
+
+**Frontend (React Native + Expo):**
+- ✅ Sign up / Registration screen
+- ✅ Email verification screen with 6-digit code input
+- ✅ Phone verification screen with 6-digit code input
+- ✅ Profile setup screen with photo upload
+- ✅ Image picker integration (expo-image-picker)
+- ✅ Complete registration flow
+- ✅ Terms & Conditions acceptance
+
 ## Quick Start
 
 ### Backend Setup
