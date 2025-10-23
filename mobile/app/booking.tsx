@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import Button from '@/components/ui/Button';
@@ -26,11 +26,21 @@ import { createBooking } from '@/services/booking';
 // Constants
 const BASE_FARE_PER_KM = 25; // 25 PESOS per km
 const AVERAGE_SPEED_KMH = 30; // Average speed for time estimation
+const INITIAL_SEARCH_RADIUS_KM = 1; // Initial search radius in km
+const RADIUS_INCREASE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes in milliseconds
+const RADIUS_INCREMENT_KM = 1; // Increase by 1km every interval
 
 interface Destination {
   address: string;
   latitude: number;
   longitude: number;
+}
+
+interface NearbyRider {
+  id: string;
+  latitude: number;
+  longitude: number;
+  isAvailable: boolean;
 }
 
 export default function BookingScreen() {
@@ -51,6 +61,11 @@ export default function BookingScreen() {
   const [isSearching, setIsSearching] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
 
+  // Nearby riders state
+  const [searchRadius, setSearchRadius] = useState(INITIAL_SEARCH_RADIUS_KM);
+  const [nearbyRiders, setNearbyRiders] = useState<NearbyRider[]>([]);
+  const [searchStartTime, setSearchStartTime] = useState<number | null>(null);
+
   // Map region
   const [region, setRegion] = useState({
     latitude: currentLocation?.latitude || 37.78825,
@@ -68,8 +83,57 @@ export default function BookingScreen() {
         longitudeDelta: 0.05,
       });
       fetchPickupAddress(currentLocation.latitude, currentLocation.longitude);
+      
+      // Start searching for nearby riders
+      setSearchStartTime(Date.now());
+      generateNearbyRiders(currentLocation.latitude, currentLocation.longitude, INITIAL_SEARCH_RADIUS_KM);
     }
   }, [currentLocation]);
+
+  // Timer to expand search radius every 5 minutes
+  useEffect(() => {
+    if (!searchStartTime || destination) return; // Stop if booking has destination
+
+    const interval = setInterval(() => {
+      const elapsedTime = Date.now() - searchStartTime;
+      const intervals = Math.floor(elapsedTime / RADIUS_INCREASE_INTERVAL_MS);
+      const newRadius = INITIAL_SEARCH_RADIUS_KM + (intervals * RADIUS_INCREMENT_KM);
+
+      if (newRadius !== searchRadius) {
+        setSearchRadius(newRadius);
+        if (currentLocation) {
+          generateNearbyRiders(currentLocation.latitude, currentLocation.longitude, newRadius);
+        }
+      }
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, [searchStartTime, searchRadius, destination, currentLocation]);
+
+  // Generate mock nearby riders within radius
+  const generateNearbyRiders = (centerLat: number, centerLng: number, radiusKm: number) => {
+    const riders: NearbyRider[] = [];
+    const numRiders = Math.floor(Math.random() * 5) + 3; // 3-7 riders
+
+    for (let i = 0; i < numRiders; i++) {
+      // Generate random point within circle
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = Math.random() * radiusKm;
+      
+      // Convert km to degrees (approximate)
+      const latOffset = (distance / 111) * Math.cos(angle);
+      const lngOffset = (distance / (111 * Math.cos(centerLat * Math.PI / 180))) * Math.sin(angle);
+
+      riders.push({
+        id: `rider-${i}`,
+        latitude: centerLat + latOffset,
+        longitude: centerLng + lngOffset,
+        isAvailable: Math.random() > 0.3, // 70% available
+      });
+    }
+
+    setNearbyRiders(riders);
+  };
 
   useEffect(() => {
     if (destination && currentLocation) {
@@ -238,6 +302,20 @@ export default function BookingScreen() {
         showsUserLocation
         showsMyLocationButton={false}
       >
+        {/* Search Radius Circle */}
+        {currentLocation && !destination && (
+          <Circle
+            center={{
+              latitude: currentLocation.latitude,
+              longitude: currentLocation.longitude,
+            }}
+            radius={searchRadius * 1000} // Convert km to meters
+            strokeColor={Colors.primary}
+            strokeWidth={2}
+            fillColor="rgba(255, 87, 51, 0.15)"
+          />
+        )}
+
         {/* Current Location Marker */}
         {currentLocation && (
           <Marker
@@ -252,6 +330,29 @@ export default function BookingScreen() {
             </View>
           </Marker>
         )}
+
+        {/* Nearby Riders Markers (Non-clickable, only shown when no destination) */}
+        {!destination && nearbyRiders.map((rider) => (
+          <Marker
+            key={rider.id}
+            coordinate={{
+              latitude: rider.latitude,
+              longitude: rider.longitude,
+            }}
+            tracksViewChanges={false}
+            pointerEvents="none"
+          >
+            <View style={styles.riderMarker}>
+              <View style={styles.riderMarkerInner}>
+                <Ionicons name="bicycle" size={20} color={Colors.primary} />
+              </View>
+              <View style={[
+                styles.riderStatusDot,
+                { backgroundColor: rider.isAvailable ? '#4CAF50' : '#FF5252' }
+              ]} />
+            </View>
+          </Marker>
+        ))}
 
         {/* Destination Marker */}
         {destination && (
@@ -286,6 +387,16 @@ export default function BookingScreen() {
           />
         )}
       </MapView>
+
+      {/* Search Radius Info Banner */}
+      {!destination && (
+        <View style={styles.radiusBanner}>
+          <Ionicons name="search" size={16} color={Colors.white} />
+          <Text style={styles.radiusText}>
+            Searching within {searchRadius} km radius • {nearbyRiders.length} riders nearby
+          </Text>
+        </View>
+      )}
 
       {/* Bottom Sheet */}
       <View style={styles.bottomSheet}>
@@ -472,6 +583,25 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
+  radiusBanner: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  radiusText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.white,
+    flex: 1,
+  },
   pickupMarker: {
     width: 40,
     height: 40,
@@ -481,6 +611,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: Colors.primary,
+  },
+  riderMarker: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  riderMarkerInner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  riderStatusDot: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.white,
   },
   destinationMarker: {
     width: 40,
