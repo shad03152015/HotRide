@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import { useRouter } from 'expo-router';
 import Button from '@/components/ui/Button';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { user, logout } = useAuth();
 
   return (
@@ -26,6 +28,12 @@ export default function HomeScreen() {
         <Text style={styles.message}>
           Stage 3 features (Home screen, Map, Ride booking) will be implemented next.
         </Text>
+
+        <Button 
+          title="Edit Profile" 
+          onPress={() => router.push('/edit-profile')} 
+          style={styles.editButton} 
+        />
 
         <Button title="Logout" onPress={logout} style={styles.logoutButton} />
       </View>
@@ -72,6 +80,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     paddingHorizontal: 20,
+  },
+  editButton: {
+    width: '100%',
+    marginBottom: 12,
   },
   logoutButton: {
     width: '100%',
